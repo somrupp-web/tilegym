@@ -5,102 +5,59 @@
 specVersion: v2
 specMinorVersion: 2
 meta:
-    name: sdxl-customization
-    image: project-sdxl-customization
-    description: Image generation customization
-    labels: []
-    createdOn: "2023-08-07T02:40:39Z"
-    defaultBranch: main
-layout:
-    - path: code/
-      type: code
-      storage: git
-    - path: models/
-      type: models
-      storage: gitlfs
-    - path: data/
-      type: data
-      storage: gitlfs
-    - path: data/scratch/
-      type: data
-      storage: gitignore
+  name: tilegym  # Must be lowercase to avoid Docker tag errors
+  image: tilegym
+  description: "TileGym Transformers Inference - Ported from custom Dockerfile"
+  createdOn: "2026-02-04T16:00:00Z"
+  defaultBranch: main
 environment:
-    base:
-        registry: nvcr.io
-        image: nvidia/pytorch:23.09-py3
-        build_timestamp: "20230322105648"
-        name: Pytorch 23.09 Base Container
-        supported_architectures:
-            - amd64
-        cuda_version: "12.2"
-        description: A base for fine-tuning SDXL with Dreambooth
-        entrypoint_script: ""
-        labels:
-            - ubuntu
-            - python3
-            - jupyterlab
-            - cuda12.2
-            - pytorch2.1
-        apps:
-            - name: inference
-              type: custom
-              class: webapp
-              start_command: cd /project/code/ && PROXY_PREFIX=$PROXY_PREFIX python3 -m chatui
-              health_check_command: curl -f "http://localhost:8080/"
-              stop_command: pkill -f "^python3 -m chatui"
-              user_msg: ""
-              logfile_path: ""
-              timeout_seconds: 120
-              icon_url: ""
-              webapp_options:
-                autolaunch: true
-                port: "8080"
-                proxy:
-                    trim_prefix: true
-                url: http://localhost:8080/
-        programming_languages:
-            - python3
-        icon_url: ""
-        image_version: 1.0.0
-        os: linux
-        os_distro: ubuntu
-        os_distro_release: "22.04"
-        schema_version: v2
-        user_info:
-            uid: ""
-            gid: ""
-            username: ""
-        package_managers:
-            - name: pip
-              binary_path: /opt/conda/bin/pip
-              installed_packages: []
-            - name: conda
-              binary_path: /opt/conda/bin/conda
-              installed_packages:
-                - jupyterlab=3.4.4
-                - tensorboard
-                - nodejs
-                - notebook
-                - python=3.10.9
-                - pytorch=2.1.0
-                - torchvision
-                - pytorch-cuda=12.1
-            - name: apt
-              binary_path: /usr/bin/apt
-              installed_packages:
-                - build-essential
-                - ca-certificates
-                - curl
-                - locales
-                - git
-                - git-lfs
-                - openssl=1.1.1f-1ubuntu2.17
-                - libssl1.1=1.1.1f-1ubuntu2.17
-                - vim
-        package_manager_environment:
-            name: ""
-            target: ""
-    compose_file_path: ""
+  base:
+    registry: nvcr.io
+    image: nvidia/cuda:13.1.0-devel-ubuntu22.04 # Matches your BASE_IMAGE
+    name: CUDA 13.1 Devel
+    os_distro: ubuntu
+    os_distro_release: "22.04"
+  
+  # Maps to your Stage 1 'apt-get install'
+  packages:
+    apt:
+      - python3-pip
+      - python3-dev
+      - python-is-python3
+      - git
+      - wget
+      - curl
+      - build-essential
+
+  # Maps to your Stage 1 and Stage 3 pip commands
+  setup:
+    - python -m pip install --upgrade pip setuptools wheel
+    - pip install --no-cache-dir --pre "torch==2.9.1" --index-url https://download.pytorch.org/whl/cu130
+    - pip install --no-cache-dir cuda-tile
+    - pip install --no-cache-dir --no-deps accelerate
+    - pip install -e . # Equivalent to your 'source' target install
+
+# Replicates your ENV and directory creation
+variables:
+  - name: PYTHONUNBUFFERED
+    value: "1"
+  - name: HF_HOME
+    value: "/workspace/.cache/huggingface"
+  - name: TILEGYM_MODEL_CACHE_DIR
+    value: "/workspace/.cache"
+
+# Replicates your WORKDIR and Directory Structure
+layout:
+  - path: code/
+    type: code
+    storage: git
+  - path: models/
+    type: models
+  - path: data/
+    type: data
+  - path: logs/
+    type: data
+
 execution:
     apps:
         - name: jupyterlab
