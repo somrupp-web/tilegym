@@ -32,14 +32,14 @@ environment:
         name: Pytorch 23.09 Base Container
         supported_architectures:
             - amd64
-        cuda_version: "13.1"
+        cuda_version: "13.0"
         description: Tilegym
         entrypoint_script: ""
         labels:
             - ubuntu
             - python3
             - jupyterlab
-            - cuda13.1
+            - cuda13.0
             - pytorch2.1
         apps:
             - name: inference
@@ -64,7 +64,7 @@ environment:
         image_version: 1.0.0
         os: linux
         os_distro: ubuntu
-        os_distro_release: "22.04"
+        os_distro_release: "24.04"
         schema_version: v2
         user_info:
             uid: ""
@@ -84,7 +84,7 @@ environment:
                 - python=3.10.9
                 - pytorch=2.1.0
                 - torchvision
-                - pytorch-cuda=13.1
+                - pytorch-cuda=13.0
             - name: apt
               binary_path: /usr/bin/apt
               installed_packages:
